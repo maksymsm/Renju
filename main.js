@@ -1,13 +1,27 @@
 const fs = require('fs');
 
+const MIN_TEST_CASES_COUNT = 1;
+const MAX_TEST_CASES_COUNT = 11;
+const BOARD_SIZE = 19;
+
 function readRenjuInput(filePath) {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+    }
+
+    let content;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch (err) {
+        throw new Error(`Failed to read file: ${err.message}`);
+    }
+
     const lines = content.trim().replaceAll('\n\n', '\n').split('\n');
 
     const testCasesCount = parseInt(lines[0], 10);
 
-    if (testCasesCount < 1 || testCasesCount > 11) {
-        throw new Error('Invalid number of test cases. It must be between 1 and 11.');
+    if (isNaN(testCasesCount) || testCasesCount < MIN_TEST_CASES_COUNT || testCasesCount > MAX_TEST_CASES_COUNT) {
+        throw new Error(`Invalid number of test cases. It must be between ${MIN_TEST_CASES_COUNT} and ${MAX_TEST_CASES_COUNT}.`);
     }
 
     let index = 1;
@@ -15,8 +29,14 @@ function readRenjuInput(filePath) {
 
     for (let t = 0; t < testCasesCount; t++) {
         const board = [];
-        for (let i = 0; i < 19; i++) {
+        for (let i = 0; i < BOARD_SIZE; i++) {
             const row = lines[index].trim().split(' ').map(Number);
+
+
+            if (row.length !== 19 || row.some(cell => isNaN(cell) || ![0, 1, 2].includes(cell))) {
+                throw new Error(`Invalid row at test case ${t + 1}, row ${i + 1}`);
+            }
+
             board.push(row);
             index++;
         }
@@ -26,29 +46,49 @@ function readRenjuInput(filePath) {
     return testCases;
 }
 
+function checkRight(board, i, j, player) {
+    if (j + 4 >= 19) return false;
+    for (let k = 1; k <= 4; k++) {
+        if (board[i][j + k] !== player) return false;
+    }
+    return true;
+}
+
+function checkDown(board, i, j, player) {
+    if (i + 4 >= 19) return false;
+    for (let k = 1; k <= 4; k++) {
+        if (board[i + k][j] !== player) return false;
+    }
+    return true;
+}
+
+function checkDiagonal(board, i, j, player) {
+    if (i + 4 >= 19 || j + 4 >= 19) return false;
+    for (let k = 1; k <= 4; k++) {
+        if (board[i + k][j + k] !== player) return false;
+    }
+    return true;
+}
+
+function checkAntiDiagonal(board, i, j, player) {
+    if (i + 4 >= 19 || j - 4 < 0) return false;
+    for (let k = 1; k <= 4; k++) {
+        if (board[i + k][j - k] !== player) return false;
+    }
+    return true;
+}
+
 function checkWinner(board) {
     for (let i = 0; i < 19; i++) {
         for (let j = 0; j < 19; j++) {
             if (board[i][j] === 0) continue;
             const player = board[i][j];
 
-            // assuming we start from top left, so check only right, down, and diagonal
-
-            // Check right →
-            if (j + 4 < 19 && board[i][j + 1] === player && board[i][j + 2] === player &&
-                board[i][j + 3] === player && board[i][j + 4] === player) {
-                return [player, i + 1, j + 1];
-            }
-
-            // Check down ↓
-            if (i + 4 < 19 && board[i + 1][j] === player && board[i + 2][j] === player &&
-                board[i + 3][j] === player && board[i + 4][j] === player) {
-                return [player, i + 1, j + 1];
-            }
-
-            // Check diagonal ↘
-            if (i + 4 < 19 && j + 4 < 19 && board[i + 1][j + 1] === player && board[i + 2][j + 2] === player &&
-                board[i + 3][j + 3] === player && board[i + 4][j + 4] === player) {
+            if (checkRight(board, i, j, player) ||
+                checkDown(board, i, j, player) ||
+                checkDiagonal(board, i, j, player) ||
+                checkAntiDiagonal(board, i, j, player)
+            ) {
                 return [player, i + 1, j + 1];
             }
         }
