@@ -3,6 +3,7 @@ const fs = require('fs');
 const MIN_TEST_CASES_COUNT = 1;
 const MAX_TEST_CASES_COUNT = 11;
 const BOARD_SIZE = 19;
+const COMBINATION_COMPLETION_LENGTH = 4;
 
 function readRenjuInput(filePath) {
     if (!fs.existsSync(filePath)) {
@@ -33,7 +34,7 @@ function readRenjuInput(filePath) {
             const row = lines[index].trim().split(' ').map(Number);
 
 
-            if (row.length !== 19 || row.some(cell => isNaN(cell) || ![0, 1, 2].includes(cell))) {
+            if (row.length !== BOARD_SIZE || row.some(cell => isNaN(cell) || ![0, 1, 2].includes(cell))) {
                 throw new Error(`Invalid row at test case ${t + 1}, row ${i + 1}`);
             }
 
@@ -47,40 +48,40 @@ function readRenjuInput(filePath) {
 }
 
 function checkRight(board, i, j, player) {
-    if (j + 4 >= 19) return false;
-    for (let k = 1; k <= 4; k++) {
+    if (j + COMBINATION_COMPLETION_LENGTH >= BOARD_SIZE) return false;
+    for (let k = 1; k <= COMBINATION_COMPLETION_LENGTH; k++) {
         if (board[i][j + k] !== player) return false;
     }
     return true;
 }
 
 function checkDown(board, i, j, player) {
-    if (i + 4 >= 19) return false;
-    for (let k = 1; k <= 4; k++) {
+    if (i + COMBINATION_COMPLETION_LENGTH >= BOARD_SIZE) return false;
+    for (let k = 1; k <= COMBINATION_COMPLETION_LENGTH; k++) {
         if (board[i + k][j] !== player) return false;
     }
     return true;
 }
 
 function checkDiagonal(board, i, j, player) {
-    if (i + 4 >= 19 || j + 4 >= 19) return false;
-    for (let k = 1; k <= 4; k++) {
+    if (i + COMBINATION_COMPLETION_LENGTH >= BOARD_SIZE || j + COMBINATION_COMPLETION_LENGTH >= BOARD_SIZE) return false;
+    for (let k = 1; k <= COMBINATION_COMPLETION_LENGTH; k++) {
         if (board[i + k][j + k] !== player) return false;
     }
     return true;
 }
 
 function checkAntiDiagonal(board, i, j, player) {
-    if (i + 4 >= 19 || j - 4 < 0) return false;
-    for (let k = 1; k <= 4; k++) {
+    if (i + COMBINATION_COMPLETION_LENGTH >= BOARD_SIZE || j - COMBINATION_COMPLETION_LENGTH < 0) return false;
+    for (let k = 1; k <= COMBINATION_COMPLETION_LENGTH; k++) {
         if (board[i + k][j - k] !== player) return false;
     }
     return true;
 }
 
 function checkWinner(board) {
-    for (let i = 0; i < 19; i++) {
-        for (let j = 0; j < 19; j++) {
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        for (let j = 0; j < BOARD_SIZE; j++) {
             if (board[i][j] === 0) continue;
             const player = board[i][j];
 
